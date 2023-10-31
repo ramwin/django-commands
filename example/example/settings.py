@@ -190,6 +190,11 @@ LOGGING = {
                          'warning_file', 'error_file', 'console'],
             'level': "INFO",
         },
+        'core': {
+            'handlers': ['debug_file', 'info_file',
+                         'warning_file', 'error_file', 'console'],
+            'level': "INFO",
+        },
         'django_commands': {
             'handlers': ['debug_file', 'info_file',
                          'warning_file', 'error_file', 'console'],

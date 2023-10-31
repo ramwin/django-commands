@@ -33,8 +33,8 @@ LOGGING = {
 ```
 
 ## Usage
-* AutoLogCommands
-any exception will he logger in the autologcommands
+### AutoLogCommands
+any exception will be logged in the autologcommand
 ```
 <yourapp/management/commands/command_name.py>
 from django_commands import AutoLogCommand
@@ -48,8 +48,31 @@ class Command(AutoLogCommand):
 
 
 
-* MultiTimesCommands
+### MultiTimesCommand
+MultiTimesCommand will run multi times according to `INTERVAL` and `MAX_TIMES`. You can easily use this command to realize a crontab job every 1 second.
 
+```python
+class Command(MultiTimesCommand):
+    INTERVAL = 1  # default 1
+    MAX_TIMES = 60  # default 60
+
+    def handle(self):
+        <this handle function will run 60 times>
+```
+*This command does not consider the running time of your code. It will just run 60 times, and during each execute, wait 1 second*
+
+### DurationCommand(AutoLogCommand):
+DurationCommand will run your commands over and over again until the running time exceed the configuration
+```python
+import datetime
+
+class Commmand(DurationCommand):
+    INTERVAL = 1
+    DURATION = datetime.timedelta(minutes=1)
+
+    def handle(self, *args, **kwargs):
+        <your code>
+```
 
 ## License
 

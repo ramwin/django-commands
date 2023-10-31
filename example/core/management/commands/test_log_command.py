@@ -3,18 +3,26 @@
 # Xiang Wang <ramwin@qq.com>
 
 
+# pylint: disable=unused-import
 """
 test if log/error.log has logs if the command raise an exception
 """
 
 
-from django_commands import AutoLogCommand
+import datetime
+import logging
+from django_commands import AutoLogCommand, MultiTimesCommand, DurationCommand
 
 
-class Command(AutoLogCommand):
+LOGGER = logging.getLogger(__name__)
+
+
+class Command(DurationCommand):
     """
     if you use BaseCommand, no error log will be logger.
     """
+    DURATION = datetime.timedelta(seconds=5)
 
     def handle(self, *args, **kwargs):
-        raise ValueError("error")
+        LOGGER.info("run")
+        # raise ValueError("error")
