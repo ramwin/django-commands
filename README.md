@@ -14,7 +14,7 @@
 ## Installation
 
 ```console
-pip install django-commands
+pip install django-commands2
 ```
 
 add django_commands to INSTALLED_APPS, and logging
