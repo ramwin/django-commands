@@ -146,7 +146,7 @@ omit = [
 ]
 
 [tool.coverage.paths]
-django_commands = ["src/django_commands", "*/django-commands/src/django_commands"]
+django_commands = ["src/django_commands"]
 tests = ["tests", "*/django-commands/tests"]
 
 [tool.coverage.report]
@@ -154,4 +154,16 @@ exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/example",
+]
+packages = ["src/django_commands"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/django_commands"]
+exclude = [
+    "/example",
 ]
