@@ -1,1 +1,6 @@
+    ONLY USE NO PRIVATE CHANGE LICENSE
+Anyone can use `pip install django-commands` to use this project by any meaning as long as you keep the source code unchanged.  
 
+You can change the source code only if you have published your change.
+Here publish means:  
+    You fork this project from github and keep your change available to the public on the github

@@ -76,4 +76,9 @@ class Commmand(DurationCommand):
 
 ## License
 
-`django-commands` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+`django-commands` is distributed under the terms of the ONLY USE NO PRIVATE CHANGE LICENSE license.
+
+Anyone can use `pip install django-commands` to use this project by any meaning as long as you keep the source code unchanged.  
+You are not allowed to change the source code without publishing your change.  
+Here publishing means you:
+    fork this project from github and keep your change available to public on the github
