@@ -74,6 +74,27 @@ class Commmand(DurationCommand):
         <your code>
 ```
 
+### UniqueCommand
+UniqueCommand can assert that only one command instance is running
+
+How it works?
+Every time the command executes:
+
+1. it will create a django_commands.models.CommandLog instance
+2. it will check if there is another Command Instance pending with the same UNIQUE_NAME
+
+```
+import time
+from django_commands.commands import UniqueCommand
+
+class Command(UniqueCommand):
+    def handle(self):
+        print("I'm running. In the next 5 seconds, you cannot execute this command. It will exist directly")
+        time.sleep(5)
+        print("I'm running")
+        raise Exception("even error occurs, this task will be set finished")
+```
+
 ## License
 
 `django-commands` is distributed under the terms of the ONLY USE NO PRIVATE CHANGE LICENSE license.
