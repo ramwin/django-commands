@@ -9,6 +9,7 @@ Usefule Command Class
 
 
 import datetime
+from decimal import Decimal
 import logging
 import time
 
@@ -22,7 +23,7 @@ from django_redis import get_redis_connection
 from django_commands.models import CommandLog
 from django_commands import AutoLogCommand
 
-from .mixins import AutoLogMixin
+from .mixins import AutoLogMixin, WarmShutdownMixin
 
 
 LOGGER = logging.getLogger(__name__)
@@ -110,3 +111,24 @@ class WaitCommand(AutoLogMixin, BaseCommand):
     def create_task(cls) -> None:
         redis, key = cls.get_redis_info()
         redis.rpush(key, time.time())
+
+
+class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
+    """
+    MultiTimesCommand will run multi times according to INTERVAL aND MAX_TIMES
+
+    you can set MAX_TIMES to decimal.Decimal("inf") to run forever
+    """
+    INTERVAL = 1
+    MAX_TIMES = 60
+    run_cnt = 0
+
+    def execute(self, *args, **kwargs):
+        while self.run_cnt < self.MAX_TIMES:
+            self.run_cnt += 1
+            super().execute(*args, **kwargs)
+            time.sleep(self.INTERVAL)
+
+
+class RunForeverCommand(MultiTimesCommand):
+    MAX_TIMES = Decimal("inf")

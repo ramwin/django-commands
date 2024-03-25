@@ -9,8 +9,11 @@ some useful command sub class
 import datetime
 import logging
 import time
+from decimal import Decimal
 
 from django.core.management.base import BaseCommand
+
+from .commands import MultiTimesCommand, RunForeverCommand
 
 
 LOGGER = logging.getLogger(__name__)
@@ -27,22 +30,6 @@ class AutoLogCommand(BaseCommand):
         except Exception as error:
             LOGGER.exception(error)
             raise
-
-    def handle(self, *args, **kwargs):
-        raise NotImplementedError
-
-
-class MultiTimesCommand(AutoLogCommand):
-    """
-    MultiTimesCommand will run multi times according to INTERVAL aND MAX_TIMES
-    """
-    INTERVAL = 1
-    MAX_TIMES = 60
-
-    def execute(self, *args, **kwargs):
-        for _ in range(self.MAX_TIMES):
-            self.handle()
-            time.sleep(self.INTERVAL)
 
     def handle(self, *args, **kwargs):
         raise NotImplementedError
