@@ -31,7 +31,8 @@ LOGGING = {
     }
 }
 DJANGO_COMMANDS_ALLOW_REMOTE_CALL = [
-    "slow_command", <your command>
+    "slow_command",  # add slow_command if you want to run unittest
+    <your command>
 ]
 ```
 

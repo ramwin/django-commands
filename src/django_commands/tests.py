@@ -45,3 +45,9 @@ class TestAsyncCommand(TestCase):
                 start + 6,
                 time.time(),
         )
+
+    def test_deny_command(self):
+        client = APIClient()
+        res = client.post("/api/django-commands/call-command/",
+                          {"command": "non_exist_command"}, format="json")
+        self.assertEqual(res.status_code, 403)
