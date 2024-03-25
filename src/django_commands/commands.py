@@ -20,13 +20,28 @@ from django.utils import timezone
 
 from django_redis import get_redis_connection
 
-from django_commands.models import CommandLog
-from django_commands import AutoLogCommand
+import django_commands
 
 from .mixins import AutoLogMixin, WarmShutdownMixin
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+class AutoLogCommand(BaseCommand):
+    """
+    AutoLogCommand will add log to every exception and then raise it
+    """
+
+    def execute(self, *args, **kwargs):
+        try:
+            return super().execute(*args, **kwargs)
+        except Exception as error:
+            LOGGER.exception(error)
+            raise
+
+    def handle(self, *args, **kwargs):
+        raise NotImplementedError
 
 
 class UniqueCommand(AutoLogCommand):
@@ -43,9 +58,9 @@ class UniqueCommand(AutoLogCommand):
 
     def execute(self, *args, **kwargs):
         unique_name = self.get_unique_name()
-        new_instance = CommandLog.objects.create(name=unique_name)
+        new_instance = django_commands.models.CommandLog.objects.create(name=unique_name)
         wait_after = timezone.now() - self.TIMEOUT
-        exist_commands = CommandLog.objects.filter(
+        exist_commands = django_commands.models.CommandLog.objects.filter(
                 status="pending",
                 name=unique_name,
                 create_datetime__gte=wait_after
@@ -132,3 +147,22 @@ class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
 
 class RunForeverCommand(MultiTimesCommand):
     MAX_TIMES = Decimal("inf")
+
+
+class DurationCommand(AutoLogCommand):
+    """
+    DurationCommand will run the command multi times until the running time exceed the MAX_DURATION
+    """
+    INTERVAL = 1
+    DURATION = datetime.timedelta(minutes=1)
+
+    def execute(self, *args, **kwargs):
+        duration = self.DURATION
+        end_time = datetime.datetime.now() + duration
+        LOGGER.info("end_time: %s", end_time)
+        while datetime.datetime.now() < end_time:
+            self.handle(*args, **kwargs)
+            time.sleep(self.INTERVAL)
+
+    def handle(self, *args, **kwargs):
+        raise NotImplementedError
