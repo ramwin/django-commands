@@ -17,7 +17,7 @@ LOGGER = logging.getLogger(__name__)
 @shared_task
 def async_call_command(
         command: str,
-        using: Literal["celery", "thread"]="thread",
+        using: Literal["celery", "thread", "local"]="thread",
         args=None, kwargs=None,
     ) -> None:
     args = args or []
@@ -29,5 +29,9 @@ def async_call_command(
     if using == "thread":
         LOGGER.info("thread task started")
         Thread(None, call_command, args=[command, *args], kwargs=kwargs).start()
+        return
+    if using == "local":
+        LOGGER.info("local task started")
+        call_command(command, *args, **kwargs)
         return
     raise NotImplementedError(using)

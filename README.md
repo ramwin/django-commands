@@ -12,12 +12,12 @@
 - [License](#license)
 
 ## Installation
-
+1. pip install
 ```console
 pip install django-commands2
 ```
 
-add django_commands to INSTALLED_APPS, and logging
+2. add django_commands to INSTALLED_APPS, and logging
 ```python
 INSTALLED_APPS = [
     ...
@@ -30,7 +30,22 @@ LOGGING = {
         }
     }
 }
+DJANGO_COMMANDS_ALLOW_REMOTE_CALL = [
+    "slow_command", <your command>
+]
 ```
+
+3. add url config like:
+
+```python
+path('api/django-commands/', include("django_commands.urls")),
+```
+
+## Call Command from url
+```
+requests.post("/api/django-commands/call-command", {"command": "slow_command"})
+```
+
 
 ## Usage
 ### AutoLogCommands
