@@ -13,9 +13,11 @@ from decimal import Decimal
 import logging
 import time
 
+from typing import Tuple
+
 from redis import Redis
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandParser
 from django.utils import timezone
 
 from django_redis import get_redis_connection
@@ -98,6 +100,12 @@ class WaitCommand(AutoLogMixin, BaseCommand):
     NAME = ""
     IMMEDIATELY = False
 
+    def add_arguments(self, parser: CommandParser):
+        parser.add_argument(
+                "--times", type=int, default=0,
+                help_text="how many times do you want to execute at most")
+        super().add_arguments(parser)
+
     def handle(self, *args, **kwargs):
         """
         get a unique name for this command
@@ -105,18 +113,23 @@ class WaitCommand(AutoLogMixin, BaseCommand):
         if self.IMMEDIATELY:
             self.create_task()
         redis, redis_key = self.get_redis_info()
+        max_run_time = kwargs.get("times", 0)
+        run_time = 0
         while True:
+            if max_run_time and run_time >= max_run_time:
+                LOGGER.info("%s has executed as least %d times, bye bye", self, run_time)
             task = redis.blpop(redis_key, timeout=5)
             if task is None:
                 continue
             redis.delete(redis_key)
             self.handle_task(*args, **kwargs)
+            run_time += 1
 
     def handle_task(self, *args, **kwargs):
         raise NotImplementedError
 
     @classmethod
-    def get_redis_info(cls) -> (Redis, str):
+    def get_redis_info(cls) -> Tuple[Redis, str]:
         redis = get_redis_connection("default")
         name = cls.NAME or f"{cls.__module__}.{cls.__name__}"
         redis_key = f"django_commands_wait_command_{name}"
