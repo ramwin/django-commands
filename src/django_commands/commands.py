@@ -127,14 +127,13 @@ class WaitCommand(AutoLogMixin, BaseCommand):
             self.handle_task(*args, **kwargs)
             run_time += 1
 
-    def handle_task(self, *args, **kwargs):
+    def handle_task(self, *args, **kwargs) -> None:
         LOGGER.error("new task created, you should override this function")
 
     @classmethod
     def get_redis_info(cls) -> Tuple[Redis, str]:
         redis = get_redis_connection("default")
-        name = cls.NAME or f"{cls.__module__}.{cls.__name__}"
-        redis_key = f"django_commands_wait_command_{name}"
+        redis_key = cls.NAME or f"{cls.__module__}.{cls.__name__}"
         return redis, redis_key
 
     @classmethod
