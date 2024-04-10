@@ -120,6 +120,7 @@ class WaitCommand(AutoLogMixin, BaseCommand):
         while True:
             if max_run_time and run_time >= max_run_time:
                 LOGGER.info("%s has executed as least %d times, bye bye", self, run_time)
+                return
             task = redis.blpop(redis_key, timeout=5)
             if task is None:
                 continue
