@@ -104,7 +104,7 @@ class WaitCommand(AutoLogMixin, BaseCommand):
     def add_arguments(self, parser: CommandParser):
         parser.add_argument(
                 "--times", type=int, default=0,
-                help_text="how many times do you want to execute at most")
+                help="how many times do you want to execute at most")
         super().add_arguments(parser)
 
     def handle(self, *args, **kwargs):
