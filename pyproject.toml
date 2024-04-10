@@ -167,3 +167,6 @@ packages = ["src/django_commands"]
 exclude = [
     "/example",
 ]
+
+[tool.setuptools.package-data]
+django_commands = ["src/django_commands/py.typed"]

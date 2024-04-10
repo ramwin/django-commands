@@ -9,9 +9,10 @@ Usefule Command Class
 
 
 import datetime
-from decimal import Decimal
 import logging
 import time
+from decimal import Decimal
+from typing import Tuple, Union
 
 from typing import Tuple
 
@@ -113,6 +114,7 @@ class WaitCommand(AutoLogMixin, BaseCommand):
         if self.IMMEDIATELY:
             self.create_task()
         redis, redis_key = self.get_redis_info()
+        LOGGER.info("rpush %s to trigger task", redis_key)
         max_run_time = kwargs.get("times", 0)
         run_time = 0
         while True:
@@ -126,7 +128,7 @@ class WaitCommand(AutoLogMixin, BaseCommand):
             run_time += 1
 
     def handle_task(self, *args, **kwargs):
-        raise NotImplementedError
+        LOGGER.error("new task created, you should override this function")
 
     @classmethod
     def get_redis_info(cls) -> Tuple[Redis, str]:
@@ -148,7 +150,7 @@ class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
     you can set MAX_TIMES to decimal.Decimal("inf") to run forever
     """
     INTERVAL = 1
-    MAX_TIMES = 60
+    MAX_TIMES: Union[Decimal, int] = 60
     run_cnt = 0
 
     def execute(self, *args, **kwargs):
