@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.shortcuts import render
 
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -31,10 +30,18 @@ class CallCommandView(APIView):
         command = data["command"]
         if command not in settings.DJANGO_COMMANDS_ALLOW_REMOTE_CALL:
             raise PermissionDenied(f"you are not allowed to call command `{command}`")
-        async_call_command(
-                data["command"],
-                data["using"],
-                data["args"],
-                data["kwargs"],
-        )
+        if data["using"] == "celery":
+            async_call_command.delay(
+                    data["command"],
+                    data["using"],
+                    data["args"],
+                    data["kwargs"],
+            )
+        else:
+            async_call_command(
+                    data["command"],
+                    data["using"],
+                    data["args"],
+                    data["kwargs"],
+            )
         return Response({})
