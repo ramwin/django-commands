@@ -107,10 +107,11 @@ class WaitCommand(AutoLogMixin, BaseCommand):
                 help="how many times do you want to execute at most")
         super().add_arguments(parser)
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         """
         get a unique name for this command
         """
+        self.before_handle()
         if self.IMMEDIATELY:
             self.create_task()
         redis, redis_key = self.get_redis_info()
@@ -128,7 +129,17 @@ class WaitCommand(AutoLogMixin, BaseCommand):
             self.handle_task(*args, **kwargs)
             run_time += 1
 
+    def before_handle(self) -> None:
+        """
+        before handle hook
+        this will be called only once
+        """
+        return
+
     def handle_task(self, *args, **kwargs) -> None:
+        """
+        override the handle_task function to do the real task
+        """
         LOGGER.error("new task created, you should override this function")
 
     @classmethod

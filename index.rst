@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to linux reference's documentation!
+Welcome to django commnads's documentation!
 ===========================================
 
 .. toctree::
@@ -26,14 +26,14 @@ Usage
 #) add django_commands to INSTALLED_APPS, and logging
 
 .. code::
+
     INSTALLED_APPS = [
-        ...
         'django_commands',
     ]
     LOGGING = {
         "loggers": {
             "django_commands": {
-                ...your custom level, handles config...
+                # ...your custom level, handles config...
             }
         }
     }
