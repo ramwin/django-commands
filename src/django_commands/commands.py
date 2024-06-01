@@ -160,8 +160,9 @@ class WaitCommand(AutoLogMixin, BaseCommand):
 
 class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
     """
-    MultiTimesCommand will run multi times according to INTERVAL aND MAX_TIMES
+    MultiTimesCommand will run multi times according to INTERVAL AND MAX_TIMES
 
+    you can use `kill -TERM <processid>` to kill the command
     you can set MAX_TIMES to decimal.Decimal("inf") to run forever
     """
     INTERVAL = 1
@@ -176,6 +177,12 @@ class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
 
 
 class RunForeverCommand(MultiTimesCommand):
+    """
+    Run Forever Command will run the commands forever. until you call
+
+        kill -TERM <processid>
+
+    """
     MAX_TIMES = Decimal("inf")
 
 

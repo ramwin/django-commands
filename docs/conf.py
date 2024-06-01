@@ -18,6 +18,7 @@ extensions = [
         "sphinx_design",
         "sphinx.ext.todo",
         "sphinx.ext.autodoc",
+        "sphinxmermaid",
         ]
 
 templates_path = ['_templates']
@@ -35,7 +36,10 @@ source_suffix = {
     '.md': 'markdown',
 }
 myst_heading_anchors = 4
-myst_enable_extensions = ["colon_fence"]
+myst_enable_extensions = [
+        "colon_fence",
+        "tasklist",
+]
 suppress_warnings = ["myst.header", "myst.xref_missing"]
 html_css_files = [
         "custom.css"

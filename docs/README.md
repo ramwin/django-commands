@@ -10,46 +10,7 @@
 **Table of Contents**
 
 - [Installation](#installation)
-- [Usage](#Usage)
 - [License](#license)
-
-## Installation
-1. pip install
-```console
-pip install django-commands2
-```
-
-2. add django_commands to INSTALLED_APPS, and logging
-```python
-INSTALLED_APPS = [
-    ...
-    'django_commands',
-]
-LOGGING = {
-    "loggers": {
-        "django_commands": {
-            ...your custom level, handles config...
-        }
-    }
-}
-DJANGO_COMMANDS_ALLOW_REMOTE_CALL = [
-    "slow_command",  # add slow_command if you want to run unittest
-    <your command>
-]
-```
-
-3. add url config like if you want to enable call command by request:
-
-```python
-path('api/django-commands/', include("django_commands.urls")),
-```
-
-## Call Command from url
-```
-import requests
-requests.post("/api/django-commands/call-command", {"command": "slow_command"})
-```
-
 
 ## Usage
 ### AutoLogCommands
