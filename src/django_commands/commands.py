@@ -53,8 +53,10 @@ class UniqueCommand(AutoLogCommand):
 
     How it works?
     Every time the command executes:
+
         1. it will create a django_commands.models.CommandLog instance
         2. it will check if there is another Command Instance pending with the same UNIQUE_NAME
+
     """
     UNIQUE_NAME = ""
     TIMEOUT = datetime.timedelta(days=1)
