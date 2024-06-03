@@ -11,7 +11,9 @@ Usefule Command Class
 import datetime
 import logging
 import time
+
 from decimal import Decimal
+from multiprocessing import Pool
 from typing import Tuple, Union
 
 from typing import Tuple
@@ -19,6 +21,7 @@ from typing import Tuple
 from redis import Redis
 
 from django.core.management.base import BaseCommand, CommandParser
+from django.db import connections
 from django.utils import timezone
 
 from django_redis import get_redis_connection
@@ -179,7 +182,7 @@ class RunForeverCommand(MultiTimesCommand):
 
 class DurationCommand(AutoLogCommand):
     """
-    DurationCommand will run the command multi times until the running time exceed the MAX_DURATION
+    DurationCommand will run the command multi times until the running time exceed the MAX_DURATION(default 1 minute)
     """
     INTERVAL = 1
     DURATION = datetime.timedelta(minutes=1)
@@ -193,4 +196,35 @@ class DurationCommand(AutoLogCommand):
             time.sleep(self.INTERVAL)
 
     def handle(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class MultiProcessCommand(AutoLogCommand):
+    """
+    A multiprocess command will use the multiprocessing.Pool to handler task.  
+    You need to inherit it and custom the `get_tasks` and `handle_single_task`.  
+    """
+
+    def add_arguments(self, parser: CommandParser):
+        parser.add_argument(
+                "-j", "--jobs", type=int,
+                help="how many process")
+        super().add_arguments(parser)
+
+    def handle(self, *args, jobs=None, **kwargs):
+        tasks = self.get_tasks()
+        LOGGER.debug("handle task: %s", tasks)
+        with Pool(jobs) as p:
+            connections.close_all()  # close connection because cursor cannot be shared between process
+            p.map(
+                self.handle_single_task,
+                tasks,
+            )
+
+    def handle_single_task(self, *args, **kwargs):
+        """handle single task"""
+        raise NotImplementedError
+
+    def get_tasks(self):
+        """return iterable task"""
         raise NotImplementedError
