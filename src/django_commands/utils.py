@@ -52,3 +52,24 @@ def datetime_type(datetimestr):
     if timezone.is_aware(datetime_obj):
         return datetime_obj
     return timezone.make_aware(datetime_obj)
+
+
+def iter_large_queryset(queryset, batch_size: int = 256):
+    """
+    split queryset in batch_size, so you can use multiprocess to handler it.
+    mechanism:
+    1. find the offset batch_size object, get iss id
+    2. use id to filter queryset, get the next batch_size offset
+
+    so the queryset must be order by pk/id
+    """
+    queryset = queryset.order_by("pk")
+    start_id = 0
+    while True:
+        end = queryset.all()[batch_size].pk
+        result = queryset.filter(pk__gte=start_id, pk__lt=end)
+        if result:
+            yield result
+        else:
+            return
+        start_id = end
