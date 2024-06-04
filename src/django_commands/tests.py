@@ -61,6 +61,13 @@ class TestUtil(TestCase):
             models.CommandLog.objects.create(
                     name=str(i)
             )
+        iterator = utils.iter_large_queryset(
+                models.CommandLog.objects.filter(name__endswith="1"),
+                batch_size=10)
+        self.assertEqual(
+            len(list(iterator)),
+            10
+        )
         results = []
         for queryset in utils.iter_large_queryset(
                 models.CommandLog.objects.filter(name__endswith="1")):

@@ -12,6 +12,7 @@ import datetime
 import logging
 import time
 
+from contextvars import ContextVar
 from decimal import Decimal
 from multiprocessing import Pool
 from typing import Tuple, Union, Iterable
@@ -30,6 +31,7 @@ from .mixins import AutoLogMixin, WarmShutdownMixin
 from .utils import iter_large_queryset
 
 
+PROCESS_INITED = ContextVar("inited", default=False)
 LOGGER = logging.getLogger(__name__)
 
 
@@ -222,14 +224,16 @@ class MultiProcessCommand(AutoLogCommand):
         tasks = self.get_tasks()
         LOGGER.debug("handle task: %s", tasks)
         with Pool(jobs) as p:
-            connections.close_all()  # close connection because cursor cannot be shared between process
             for result in p.imap_unordered(
                 self.handle_single_task, tasks):
-                LOGGER.info("handle single task done: result", result)
+                LOGGER.info("handle single task done: %s", result)
 
     @classmethod
     def handle_single_task(cls, *args, **kwargs):
         """handle single task"""
+        if PROCESS_INITED.get() is False:
+            PROCESS_INITED.set(True)
+            # connections.close_all()
         raise NotImplementedError
 
     def get_tasks(self):

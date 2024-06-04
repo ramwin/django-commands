@@ -80,3 +80,4 @@ def iter_large_queryset(queryset, batch_size: int = 256) -> Iterable[QuerySet]:
         else:
             return
         start_id = end
+        queryset = queryset.filter(pk__gte=start_id)
