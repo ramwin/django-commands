@@ -227,7 +227,8 @@ class MultiProcessCommand(AutoLogCommand):
                 self.handle_single_task, tasks):
                 LOGGER.info("handle single task done: result", result)
 
-    def handle_single_task(self, *args, **kwargs):
+    @classmethod
+    def handle_single_task(cls, *args, **kwargs):
         """handle single task"""
         raise NotImplementedError
 
@@ -252,6 +253,7 @@ class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
             assert queryset.last()
             yield (queryset.first().pk, queryset.last().pk)
 
-    def handle_single_task(self, *args, **kwargs):
+    @classmethod
+    def handle_single_task(cls, *args, **kwargs):
         """handle single task"""
         raise NotImplementedError
