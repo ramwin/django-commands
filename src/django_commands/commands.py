@@ -14,9 +14,7 @@ import time
 
 from decimal import Decimal
 from multiprocessing import Pool
-from typing import Tuple, Union
-
-from typing import Tuple
+from typing import Tuple, Union, Iterable
 
 from redis import Redis
 
@@ -29,6 +27,7 @@ from django_redis import get_redis_connection
 import django_commands
 
 from .mixins import AutoLogMixin, WarmShutdownMixin
+from .utils import iter_large_queryset
 
 
 LOGGER = logging.getLogger(__name__)
@@ -212,14 +211,14 @@ class MultiProcessCommand(AutoLogCommand):
         super().add_arguments(parser)
 
     def handle(self, *args, jobs=None, **kwargs):
+        start = timezone.now()
         tasks = self.get_tasks()
         LOGGER.debug("handle task: %s", tasks)
         with Pool(jobs) as p:
             connections.close_all()  # close connection because cursor cannot be shared between process
-            p.map(
-                self.handle_single_task,
-                tasks,
-            )
+            for result in p.imap_unordered(
+                self.handle_single_task, tasks):
+                LOGGER.info("handle single task done: result", result)
 
     def handle_single_task(self, *args, **kwargs):
         """handle single task"""
@@ -227,4 +226,25 @@ class MultiProcessCommand(AutoLogCommand):
 
     def get_tasks(self):
         """return iterable task"""
+        raise NotImplementedError
+
+
+class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
+    queryset = None
+    DURATION = datetime.timedelta(minutes=1)
+
+    def get_tasks(self) -> Iterable[Tuple[int, int]]:
+        """use iter_large_queryset util to iterate a large queryset"""
+        end_datetime = timezone.now() + self.DURATION
+        for queryset in iter_large_queryset(self.queryset):
+            if timezone.now() > end_datetime:
+                return
+            if not queryset:
+                return
+            assert queryset.first()
+            assert queryset.last()
+            yield (queryset.first().pk, queryset.last().pk)
+
+    def handle_single_task(self, *args, **kwargs):
+        """handle single task"""
         raise NotImplementedError
