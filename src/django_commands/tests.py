@@ -2,6 +2,7 @@ import logging
 import time
 
 from django.test import TestCase
+from django_commands import models, utils
 from django_commands.tasks import async_call_command
 
 from rest_framework.test import APIClient
@@ -51,3 +52,17 @@ class TestAsyncCommand(TestCase):
         res = client.post("/api/django-commands/call-command/",
                           {"command": "non_exist_command"}, format="json")
         self.assertEqual(res.status_code, 403)
+
+
+class TestUtil(TestCase):
+
+    def test(self):
+        for i in range(1000):
+            models.CommandLog.objects.create(
+                    name=str(i)
+            )
+        results = []
+        for queryset in utils.iter_large_queryset(
+                models.CommandLog.objects.filter(name__endswith="1")):
+            results.extend([command.name for command in queryset])
+        self.assertEqual(len(queryset), 100)

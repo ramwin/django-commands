@@ -11,6 +11,9 @@ datetime option
 import datetime
 import re
 
+from typing import Iterable
+
+from django.db.models import QuerySet
 from django.utils import timezone
 
 
@@ -54,7 +57,7 @@ def datetime_type(datetimestr):
     return timezone.make_aware(datetime_obj)
 
 
-def iter_large_queryset(queryset, batch_size: int = 256):
+def iter_large_queryset(queryset, batch_size: int = 256) -> Iterable[QuerySet]:
     """
     split queryset in batch_size, so you can use multiprocess to handler it.
     mechanism:
@@ -66,7 +69,11 @@ def iter_large_queryset(queryset, batch_size: int = 256):
     queryset = queryset.order_by("pk")
     start_id = 0
     while True:
-        end = queryset.all()[batch_size].pk
+        try:
+            end = queryset.all()[batch_size].pk
+        except IndexError:
+            yield queryset
+            return
         result = queryset.filter(pk__gte=start_id, pk__lt=end)
         if result:
             yield result
