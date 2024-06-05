@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to linux reference's documentation!
+Welcome to django commnads's documentation!
 ===========================================
 
 .. toctree::
