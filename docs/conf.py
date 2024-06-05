@@ -6,6 +6,13 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+import os
+import sys
+from pathlib import Path
+
+import django
+
+
 project = 'django commands'
 copyright = '2024, Xiang Wang'
 author = 'Xiang Wang'
@@ -45,3 +52,9 @@ html_css_files = [
         "custom.css"
         ]
 todo_include_todos = True
+
+sys.path.insert(0,
+                str(Path(__file__).parent.parent.joinpath(
+                    "example").absolute()))
+os.environ["DJANGO_SETTINGS_MODULE"] = "example.settings"
+django.setup()
