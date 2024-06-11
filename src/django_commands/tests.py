@@ -4,6 +4,7 @@ import time
 from django.test import TestCase
 from django_commands import models, utils
 from django_commands.tasks import async_call_command
+from django_commands.utils import get_middle_string
 
 from rest_framework.test import APIClient
 
@@ -85,3 +86,11 @@ class TestUtil(TestCase):
             BisectTask(0, 9, 1).find_first_error(),
             6.5,
             delta=0.5)
+
+    def test_get_middle_string(self):
+        self.assertEqual(get_middle_string("a", "c"), "b")
+        self.assertEqual(get_middle_string("", "c"), " ")
+        self.assertEqual(get_middle_string("ba", "bc"), "bb")
+        self.assertEqual(get_middle_string("", ""), "")
+        self.assertEqual(get_middle_string("", "2"), " ")
+        self.assertEqual(get_middle_string("7125811f-67c5-47f6-8327-b570b6ce72a1", "7136ec17-5a50-4d4c-a643-f3c1506bfeab"), "712a")

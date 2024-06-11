@@ -9,6 +9,7 @@ datetime option
 
 
 import datetime
+import itertools
 import re
 
 from typing import Iterable
@@ -117,3 +118,24 @@ class Bisect:
 
     def get_middle(self, start, end):
         return (start + end) // 2 
+
+
+def get_middle_string(lower: str, upper: str) -> str:
+    """
+    return a middle value between lower and upper, in case you need to do bisect task for database field like uuid.
+    """
+    result = ""
+    for lower_letter, upper_letter in itertools.zip_longest(lower, upper):
+        if lower_letter is None:
+            if ord(upper_letter) >= 32:
+                return result + " "
+            return result + ord(upper_letter) // 2
+        if lower_letter == upper_letter:
+            result += lower_letter
+            continue
+        if ord(upper_letter) - ord(lower_letter) == 1:
+            return result + lower_letter + 'a'
+        return result + chr(
+                (ord(upper_letter) + ord(lower_letter)) // 2
+        )
+    return result
