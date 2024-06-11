@@ -81,3 +81,36 @@ def iter_large_queryset(queryset, batch_size: int = 256) -> Iterable[QuerySet]:
             return
         start_id = end
         queryset = queryset.filter(pk__gte=start_id)
+
+
+class Bisect:
+
+    def __init__(self, start, end, step):
+        """find first error in duration"""
+        self.start = start
+        self.end = end
+        self.step = step
+        self.checked = False
+
+    def check(self):
+        if not self.has_error(start, end):
+            raise ValueError("no error between start and end")
+
+    def has_error(self, start, end):
+        raise NotImplementedError
+
+    def find_first_error(self):
+        if not self.checked:
+            raise ValueError("call check before find the first error")
+        start = self.start
+        end = self.end
+        while (end - start) > step:
+            middle = self.get_middle(start, end)
+            if self.has_error(start, middle):
+                end = middle
+            else:
+                start = middle
+        return start
+
+    def get_middle(self, start, end):
+        return (start + end) // 2 
