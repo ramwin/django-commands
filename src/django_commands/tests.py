@@ -9,6 +9,12 @@ from rest_framework.test import APIClient
 
 LOGGER = logging.getLogger(__name__)
 
+class BisectTask(utils.Bisect):
+    DATA = [0, 1, 2, 3, 4, 5, 6, 8, 9, 10]
+
+    def has_error(self, start, end):
+        return (self.DATA[end] - self.DATA[start]) != end - start
+
 
 class TestAsyncCommand(TestCase):
 
@@ -73,3 +79,9 @@ class TestUtil(TestCase):
                 models.CommandLog.objects.filter(name__endswith="1")):
             results.extend([command.name for command in queryset])
         self.assertEqual(len(queryset), 100)
+
+    def test_bisect(self):
+        self.assertAlmostEqual(
+            BisectTask(0, 9, 1).find_first_error(),
+            6.5,
+            delta=0.5)
