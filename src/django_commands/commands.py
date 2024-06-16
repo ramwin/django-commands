@@ -174,7 +174,10 @@ class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
     def execute(self, *args, **kwargs):
         while self.run_cnt < self.MAX_TIMES:
             self.run_cnt += 1
-            super().execute(*args, **kwargs)
+            try:
+                super().execute(*args, **kwargs)
+            except StopIteration:
+                break
             time.sleep(self.INTERVAL)
 
 
@@ -200,7 +203,11 @@ class DurationCommand(AutoLogCommand):
         end_time = datetime.datetime.now() + duration
         LOGGER.info("end_time: %s", end_time)
         while datetime.datetime.now() < end_time:
-            self.handle(*args, **kwargs)
+            try:
+                self.handle(*args, **kwargs)
+            except StopIteration:
+                LOGGER.debug("StopIteration occured, DurationCommand will exit")
+                break
             time.sleep(self.INTERVAL)
 
     def handle(self, *args, **kwargs):
