@@ -255,6 +255,7 @@ class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
     def get_tasks(self) -> Iterable[Tuple[int, int]]:
         """use iter_large_queryset util to iterate a large queryset"""
         end_datetime = timezone.now() + self.DURATION
+        results = []
         for queryset in iter_large_queryset(self.queryset):
             if timezone.now() > end_datetime:
                 return
@@ -262,7 +263,9 @@ class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
                 return
             assert queryset.first()
             assert queryset.last()
-            yield (queryset.first().pk, queryset.last().pk)
+            results.append([queryset.first().pk, queryset.last().pk])
+        connections.close_all()
+        return results
 
     @classmethod
     def handle_single_task(cls, *args, **kwargs):
