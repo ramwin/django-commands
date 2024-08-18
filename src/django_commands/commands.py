@@ -15,7 +15,7 @@ import time
 from contextvars import ContextVar
 from decimal import Decimal
 from multiprocessing import Pool
-from typing import Tuple, Union, Iterable
+from typing import Tuple, Union, Iterable, Optional
 
 from redis import Redis
 
@@ -103,9 +103,13 @@ class WaitCommand(AutoLogMixin, BaseCommand):
 
     before start it will delete the key, so you can
     call create_task many times and only one time will it execute
+
+    class variable:
+        SQUASH_TASK = True  # wheter squash multi tasks into one
     """
     NAME = ""
     IMMEDIATELY = False
+    SQUASH_TASK = True
 
     def add_arguments(self, parser: CommandParser):
         parser.add_argument(
@@ -128,11 +132,12 @@ class WaitCommand(AutoLogMixin, BaseCommand):
             if max_run_time and run_time >= max_run_time:
                 LOGGER.info("%s has executed as least %d times, bye bye", self, run_time)
                 return
-            task = redis.blpop(redis_key, timeout=5)
-            if task is None:
+            key_taskid = redis.blpop(redis_key, timeout=5)
+            if key_taskid is None:
                 continue
-            redis.delete(redis_key)
-            self.handle_task(*args, **kwargs)
+            if self.SQUASH_TASK:
+                redis.delete(redis_key)
+            self.handle_task(key_taskid[1], *args, **kwargs)
             run_time += 1
 
     def before_handle(self) -> None:
@@ -142,7 +147,7 @@ class WaitCommand(AutoLogMixin, BaseCommand):
         """
         return
 
-    def handle_task(self, *args, **kwargs) -> None:
+    def handle_task(self, task_id, *args, **kwargs) -> None:
         """
         override the handle_task function to do the real task
         """
@@ -155,9 +160,10 @@ class WaitCommand(AutoLogMixin, BaseCommand):
         return redis, redis_key
 
     @classmethod
-    def create_task(cls) -> None:
+    def create_task(cls, task_id: Optional[str] = None) -> None:
         redis, key = cls.get_redis_info()
-        redis.rpush(key, time.time())
+        task_id = task_id or str(time.time())
+        redis.rpush(key, task_id)
 
 
 class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):

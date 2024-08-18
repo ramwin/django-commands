@@ -8,5 +8,6 @@ from django_commands.commands import WaitCommand
 
 class Command(WaitCommand):
 
-    def handle_task(self, *args, **kwargs):
-        print("handler_task")
+    def handle_task(self, task_id, *args, **kwargs):
+        print(task_id)
+        print("handler_task: %s", args)
