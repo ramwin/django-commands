@@ -257,19 +257,23 @@ class MultiProcessCommand(AutoLogCommand):
 class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
     queryset = None
     DURATION = datetime.timedelta(minutes=1)
+    BATCH_SIZE = 256
+    MAX_TASK = Decimal("inf")
 
     def get_tasks(self) -> Iterable[Tuple[int, int]]:
         """use iter_large_queryset util to iterate a large queryset"""
         end_datetime = timezone.now() + self.DURATION
         results = []
-        for queryset in iter_large_queryset(self.queryset):
+        for queryset in iter_large_queryset(self.queryset, self.BATCH_SIZE):
             if timezone.now() > end_datetime:
-                return results
+                break
             if not queryset:
-                return results
+                break
             assert queryset.first()
             assert queryset.last()
-            results.append([queryset.first().pk, queryset.last().pk])
+            results.append((queryset.first().pk, queryset.last().pk))
+            if len(results) >= self.MAX_TASK:
+                break
         connections.close_all()
         return results
 
