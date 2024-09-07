@@ -73,10 +73,11 @@ def iter_large_queryset(queryset, batch_size: int = 256) -> Iterable[QuerySet]:
         try:
             end = queryset.all()[batch_size].pk
         except IndexError:
-            yield queryset
+            if queryset.exists():
+                yield queryset
             return
         result = queryset.filter(pk__gte=start_id, pk__lt=end)
-        if result:
+        if result.exists():
             yield result
         else:
             return

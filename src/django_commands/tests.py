@@ -4,7 +4,7 @@ import time
 from django.test import TestCase
 from django_commands import models, utils
 from django_commands.tasks import async_call_command
-from django_commands.utils import get_middle_string
+from django_commands.utils import get_middle_string, iter_large_queryset
 
 from rest_framework.test import APIClient
 
@@ -68,7 +68,7 @@ class TestUtil(TestCase):
             models.CommandLog.objects.create(
                     name=str(i)
             )
-        iterator = utils.iter_large_queryset(
+        iterator = iter_large_queryset(
                 models.CommandLog.objects.filter(name__endswith="1"),
                 batch_size=10)
         self.assertEqual(
@@ -76,7 +76,7 @@ class TestUtil(TestCase):
             10
         )
         results = []
-        for queryset in utils.iter_large_queryset(
+        for queryset in iter_large_queryset(
                 models.CommandLog.objects.filter(name__endswith="1")):
             results.extend([command.name for command in queryset])
         self.assertEqual(len(queryset), 100)
@@ -94,3 +94,9 @@ class TestUtil(TestCase):
         self.assertEqual(get_middle_string("", ""), "")
         self.assertEqual(get_middle_string("", "2"), " ")
         self.assertEqual(get_middle_string("7125811f-67c5-47f6-8327-b570b6ce72a1", "7136ec17-5a50-4d4c-a643-f3c1506bfeab"), "712a")
+
+    def test_none_large_queryset(self):
+        self.assertEqual(
+            [i for i in iter_large_queryset(models.CommandLog.objects.all())],
+            []
+        )
