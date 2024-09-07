@@ -264,9 +264,9 @@ class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
         results = []
         for queryset in iter_large_queryset(self.queryset):
             if timezone.now() > end_datetime:
-                return
+                return results
             if not queryset:
-                return
+                return results
             assert queryset.first()
             assert queryset.last()
             results.append([queryset.first().pk, queryset.last().pk])
