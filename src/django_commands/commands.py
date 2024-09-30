@@ -260,11 +260,16 @@ class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
     BATCH_SIZE = 256
     MAX_TASK = Decimal("inf")
 
+    def get_queryset(self):
+        if self.queryset is None:
+            raise ValueError("Please set queryset on the commands")
+        return self.queryset
+
     def get_tasks(self) -> Iterable[Tuple[int, int]]:
         """use iter_large_queryset util to iterate a large queryset"""
         end_datetime = timezone.now() + self.DURATION
         results = []
-        for queryset in iter_large_queryset(self.queryset, self.BATCH_SIZE):
+        for queryset in iter_large_queryset(self.get_queryset(), self.BATCH_SIZE):
             if timezone.now() > end_datetime:
                 break
             if not queryset:
