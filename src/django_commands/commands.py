@@ -137,6 +137,7 @@ class WaitCommand(AutoLogMixin, BaseCommand):
                 continue
             if self.SQUASH_TASK:
                 redis.delete(redis_key)
+            LOGGER.info("handle task: %s", key_taskid)
             self.handle_task(key_taskid[1], *args, **kwargs)
             run_time += 1
 

@@ -14,7 +14,7 @@ import re
 
 from typing import Iterable
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 from django.utils import timezone
 
 
@@ -58,7 +58,7 @@ def datetime_type(datetimestr):
     return timezone.make_aware(datetime_obj)
 
 
-def iter_large_queryset(queryset, batch_size: int = 256) -> Iterable[QuerySet]:
+def iter_large_queryset(queryset, batch_size: int = 256, ordering_field: str = "pk") -> Iterable[QuerySet]:
     """
     split queryset in batch_size, so you can use multiprocess to handler it.
     mechanism:
@@ -67,22 +67,32 @@ def iter_large_queryset(queryset, batch_size: int = 256) -> Iterable[QuerySet]:
 
     so the queryset must be order by pk/id
     """
-    queryset = queryset.order_by("pk")
-    start_id = 0
+    queryset = queryset.order_by(ordering_field)
+    first_obj = queryset.first()
+    if first_obj is None:
+        return
+    start_value = getattr(first_obj, ordering_field)
     while True:
         try:
-            end = queryset.all()[batch_size].pk
+            end_value = getattr(
+                    queryset.all()[batch_size],
+                    ordering_field,
+            )
         except IndexError:
             if queryset.exists():
                 yield queryset
             return
-        result = queryset.filter(pk__gte=start_id, pk__lt=end)
+        q = Q(**{
+            f"{ordering_field}__gte": start_value,
+            f"{ordering_field}__lt": end_value,
+        })
+        result = queryset.filter(q)
         if result.exists():
             yield result
         else:
             return
-        start_id = end
-        queryset = queryset.filter(pk__gte=start_id)
+        start_value = end_value
+        queryset = queryset.filter(**{f"{ordering_field}__gte": start_value})
 
 
 class Bisect:

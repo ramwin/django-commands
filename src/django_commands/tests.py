@@ -3,6 +3,7 @@ import time
 
 from django.test import TestCase
 from django_commands import models, utils
+from django_commands.models import CommandLog
 from django_commands.tasks import async_call_command
 from django_commands.utils import get_middle_string, iter_large_queryset
 
@@ -65,11 +66,11 @@ class TestUtil(TestCase):
 
     def test(self):
         for i in range(1000):
-            models.CommandLog.objects.create(
+            CommandLog.objects.create(
                     name=str(i)
             )
         iterator = iter_large_queryset(
-                models.CommandLog.objects.filter(name__endswith="1"),
+                CommandLog.objects.filter(name__endswith="1"),
                 batch_size=10)
         self.assertEqual(
             len(list(iterator)),
@@ -77,7 +78,7 @@ class TestUtil(TestCase):
         )
         results = []
         for queryset in iter_large_queryset(
-                models.CommandLog.objects.filter(name__endswith="1")):
+                CommandLog.objects.filter(name__endswith="1")):
             results.extend([command.name for command in queryset])
         self.assertEqual(len(queryset), 100)
 
@@ -97,6 +98,14 @@ class TestUtil(TestCase):
 
     def test_none_large_queryset(self):
         self.assertEqual(
-            [i for i in iter_large_queryset(models.CommandLog.objects.all())],
+            [i for i in iter_large_queryset(CommandLog.objects.all())],
             []
         )
+
+    def test_iter_large_queryset(self):
+        CommandLog.objects.create(name="bbb")
+        CommandLog.objects.create(name="ccc")
+        CommandLog.objects.create(name="aaa")
+        a, b = iter_large_queryset(CommandLog.objects.all(), batch_size=2, ordering_field="name")
+        self.assertEqual(
+            b.get().name, "ccc")
