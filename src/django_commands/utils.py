@@ -14,7 +14,7 @@ import re
 
 from typing import Iterable
 
-from django.db.models import QuerySet, Q
+from django.db.models import QuerySet, Q, ForeignKey
 from django.utils import timezone
 
 
@@ -140,7 +140,7 @@ def get_middle_string(lower: str, upper: str) -> str:
         if lower_letter is None:
             if ord(upper_letter) >= 32:
                 return result + " "
-            return result + ord(upper_letter) // 2
+            return result
         if lower_letter == upper_letter:
             result += lower_letter
             continue
@@ -150,3 +150,28 @@ def get_middle_string(lower: str, upper: str) -> str:
                 (ord(upper_letter) + ord(lower_letter)) // 2
         )
     return result
+
+
+class Dependency:
+
+    def __init__(self, models, max_count=100):
+        self.graph = TopologicalSorter()
+        self.objects = {None}
+        self.pending = set(models)
+        self.max_count = max_count
+
+    def update_objects(self) -> None:
+        while self.pending and len(self.objects) <= self.max_count:
+            model = self.pending.pop()
+            self.objects.add(model)
+            self.update_object(model)
+
+    def update_object(self, model) -> None:
+        for field in model._meta.fields:
+            if not isinstance(field, ForeignKey):
+                continue
+            dependency = getattr(model, field.name)
+            if dependency in self.objects:
+                continue
+            self.pending.add(dependency)
+            self.graph.add(model, dependency)
