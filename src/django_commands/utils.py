@@ -10,16 +10,18 @@ datetime option
 
 import datetime
 import itertools
+import logging
 import re
 from graphlib import TopologicalSorter
 
-from typing import Iterable
+from typing import Iterable, List
 
-from django.db.models import QuerySet, Q, ForeignKey
+from django.db.models import QuerySet, Q, ForeignKey, Model
 from django.utils import timezone
 
 
 TZ = timezone.get_default_timezone()
+LOGGER = logging.getLogger(__name__)
 
 
 def datetime_type(datetimestr):
@@ -174,7 +176,11 @@ class Dependency:
             if not isinstance(field, ForeignKey):
                 continue
             dependency = getattr(model, field.name)
-            if dependency in self.objects:
+            if dependency is None:
                 continue
-            self.pending.add(dependency)
+            if dependency not in self.objects:
+                self.pending.add(dependency)
             self.graph.add(model, dependency)
+
+    def all_objects(self) -> List[Model]:
+        return self.graph.static_order()

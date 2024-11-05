@@ -4,7 +4,7 @@ from django.db import models
 
 
 class Node(models.Model):
-    parent = models.ForeignKey("self", on_delete=models.CASCADE)
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True)
     note = models.TextField(default="")
 
 
