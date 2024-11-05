@@ -162,7 +162,9 @@ class Dependency:
         self.max_count = max_count
 
     def update_objects(self) -> None:
-        while self.pending and len(self.objects) <= self.max_count:
+        while self.pending:
+            if len(self.objects) >= self.max_count:
+                raise ValueError("too many dependencies!")
             model = self.pending.pop()
             self.objects.add(model)
             self.update_object(model)
