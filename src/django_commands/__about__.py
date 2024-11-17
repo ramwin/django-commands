@@ -1,2 +1,2 @@
 # SPDX-FileCopyrightText: 2023-present Xiang Wang <ramwin@qq.com>
-__version__ = "0.20.3"
+__version__ = "0.22.0"

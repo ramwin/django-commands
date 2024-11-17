@@ -110,6 +110,7 @@ class WaitCommand(AutoLogMixin, BaseCommand):
     NAME = ""
     IMMEDIATELY = False
     SQUASH_TASK = True
+    BATCH_SIZE = 1  # how many tasks do you want to pop once
 
     def add_arguments(self, parser: CommandParser):
         parser.add_argument(
@@ -132,14 +133,22 @@ class WaitCommand(AutoLogMixin, BaseCommand):
             if max_run_time and run_time >= max_run_time:
                 LOGGER.info("%s has executed as least %d times, bye bye", self, run_time)
                 return
-            key_taskid = redis.blpop(redis_key, timeout=5)
-            if key_taskid is None:
-                continue
+            key_taskids = redis.lpop(redis_key, self.BATCH_SIZE)
+            if key_taskids is None:
+                key_taskid = redis.blpop(redis_key, timeout=5)
+                if key_taskid is None:
+                    LOGGER.debug("no task")
+                    continue
+                LOGGER.debug("get one task: %s", key_taskid)
+                key_taskids = [key_taskid[1]]
+            else:
+                LOGGER.debug("get multi task one time: %s", key_taskids)
             if self.SQUASH_TASK:
                 redis.delete(redis_key)
-            LOGGER.info("handle task: %s", key_taskid)
-            self.handle_task(key_taskid[1], *args, **kwargs)
-            run_time += 1
+            LOGGER.debug("handle task: %s", key_taskids)
+            for key_taskid in key_taskids:
+                self.handle_task(key_taskid, *args, **kwargs)
+                run_time += 1
 
     def before_handle(self) -> None:
         """
@@ -165,6 +174,11 @@ class WaitCommand(AutoLogMixin, BaseCommand):
         redis, key = cls.get_redis_info()
         task_id = task_id or str(time.time())
         redis.rpush(key, task_id)
+
+    @classmethod
+    def clear_task(cls) -> None:
+        redis, key = cls.get_redis_info()
+        redis.delete(key)
 
 
 class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):

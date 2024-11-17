@@ -11,6 +11,7 @@ from rest_framework.test import APIClient
 
 LOGGER = logging.getLogger(__name__)
 
+
 class BisectTask(utils.Bisect):
     DATA = [0, 1, 2, 3, 4, 5, 6, 8, 9, 10]
 
