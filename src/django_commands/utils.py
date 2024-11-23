@@ -197,5 +197,5 @@ def assert_no_extra_delete(obj) -> None:
     # If you want to delete multi item, you can use:
     # nested_object.collect(Model.objects.filter(type="deleted"))
 
-    if nested_object.nested():
-        raise ValueError(f"{obj} has dependency: %s", nested_object)
+    if nested_object.nested() != [obj]:
+        raise ValueError(f"{obj} has dependency: %s", nested_object.nested())
