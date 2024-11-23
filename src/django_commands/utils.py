@@ -16,6 +16,8 @@ from graphlib import TopologicalSorter
 
 from typing import Iterable, List
 
+from django.contrib.admin.utils import NestedObjects
+from django.db import router
 from django.db.models import QuerySet, Q, ForeignKey, Model
 from django.utils import timezone
 
@@ -184,3 +186,16 @@ class Dependency:
 
     def all_objects(self) -> List[Model]:
         return self.graph.static_order()
+
+
+def assert_no_extra_delete(obj) -> None:
+    using = router.db_for_write(obj._meta.model)
+    # if you only have one database, just set using = "default"
+
+    nested_object = NestedObjects(using)
+    nested_object.collect([obj])
+    # If you want to delete multi item, you can use:
+    # nested_object.collect(Model.objects.filter(type="deleted"))
+
+    if nested_object.nested():
+        raise ValueError(f"{obj} has dependency: %s", nested_object)
