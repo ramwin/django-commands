@@ -21,6 +21,7 @@ from redis import Redis
 
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import connections
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from django_redis import get_redis_connection
@@ -270,10 +271,10 @@ class MultiProcessCommand(AutoLogCommand):
 
 
 class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
-    queryset = None
+    queryset: QuerySet = None
     DURATION = datetime.timedelta(minutes=1)
     BATCH_SIZE = 256
-    MAX_TASK = Decimal("inf")
+    MAX_TASK: Union[Decimal, int] = Decimal("inf")
 
     def get_queryset(self):
         if self.queryset is None:
