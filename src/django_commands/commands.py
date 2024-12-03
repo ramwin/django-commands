@@ -97,7 +97,7 @@ class UniqueCommand(AutoLogCommand):
         raise NotImplementedError
 
 
-class WaitCommand(AutoLogMixin, BaseCommand):
+class WaitCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
     """
     A WaitCommand will use the redis blopop
     to run a command as soon as possible
@@ -131,6 +131,9 @@ class WaitCommand(AutoLogMixin, BaseCommand):
         max_run_time = kwargs.get("times", 0)
         run_time = 0
         while True:
+            if self.need_stop:
+                LOGGER.info("stop wait command: %s", self)
+                break
             if max_run_time and run_time >= max_run_time:
                 LOGGER.info("%s has executed as least %d times, bye bye", self, run_time)
                 return
