@@ -258,7 +258,7 @@ class MultiProcessCommand(AutoLogCommand):
         with Pool(jobs) as p:
             for result in p.imap_unordered(
                 self.handle_single_task, tasks):
-                LOGGER.info("handle single task done: %s", result)
+                LOGGER.debug("handle single task done: %s", result)
 
     @classmethod
     def handle_single_task(cls, *args, **kwargs):
