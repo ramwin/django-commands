@@ -21,6 +21,8 @@ from django.db import router
 from django.db.models import QuerySet, Q, ForeignKey, Model
 from django.utils import timezone
 
+from .exceptions import NoErrorException
+
 
 TZ = timezone.get_default_timezone()
 LOGGER = logging.getLogger(__name__)
@@ -113,7 +115,7 @@ class Bisect:
 
     def check(self):
         if not self.has_error(self.start, self.end):
-            raise ValueError("no error between start and end")
+            raise NoErrorException("no error between start and end")
         self._checked = True
 
     def has_error(self, start, end):
@@ -121,7 +123,7 @@ class Bisect:
 
     def find_first_error(self):
         if not self._checked:
-            raise ValueError("call check before find the first error")
+            raise NoErrorException("call check before find the first error")
         start = self.start
         end = self.end
         while (end - start) > self.step:
