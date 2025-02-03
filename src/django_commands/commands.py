@@ -192,7 +192,7 @@ class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
     you can use `kill -TERM <processid>` to kill the command
     you can set MAX_TIMES to decimal.Decimal("inf") to run forever
     """
-    INTERVAL = 1
+    INTERVAL = 1.0
     MAX_TIMES: Union[Decimal, int] = 60
     run_cnt = 0
 
@@ -220,7 +220,7 @@ class DurationCommand(AutoLogCommand):
     """
     DurationCommand will run the command multi times until the running time exceed the MAX_DURATION(default 1 minute)
     """
-    INTERVAL = 1
+    INTERVAL = 1.0
     DURATION = datetime.timedelta(minutes=1)
 
     def execute(self, *args, **kwargs):
