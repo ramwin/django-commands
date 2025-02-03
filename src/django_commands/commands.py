@@ -198,6 +198,8 @@ class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
 
     def execute(self, *args, **kwargs):
         while self.run_cnt < self.MAX_TIMES:
+            if self.need_stop:
+                break
             self.run_cnt += 1
             try:
                 super().execute(*args, **kwargs)
