@@ -196,8 +196,17 @@ class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
     MAX_TIMES: Union[Decimal, int] = 60
     run_cnt = 0
 
+    def add_arguments(self, parser: CommandParser):
+        parser.add_argument(
+                "--times", type=int,
+                help="how many times do you want to execute at most")
+        super().add_arguments(parser)
+
     def execute(self, *args, **kwargs):
-        while self.run_cnt < self.MAX_TIMES:
+        max_run_time = kwargs.get("times")
+        if max_run_time is None:
+            max_run_time = self.MAX_TIMES
+        while self.run_cnt < max_run_time:
             if self.need_stop:
                 break
             self.run_cnt += 1
