@@ -125,9 +125,9 @@ class WaitCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
         """
         self.before_handle()
         if self.IMMEDIATELY:
+            LOGGER.info("rpush %s to trigger task", redis_key)
             self.create_task()
         redis, redis_key = self.get_redis_info()
-        LOGGER.info("rpush %s to trigger task", redis_key)
         max_run_time = kwargs.get("times", 0)
         run_time = 0
         while True:
