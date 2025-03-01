@@ -15,7 +15,7 @@ class AutoLogMixin:
 
     def handle(self, *args, **kwargs):
         try:
-            super().handle(*args, **kwargs)
+            super().handle(*args, **kwargs)  # type: ignore[misc]
         except Exception as error:
             LOGGER.exception(error)
             raise
@@ -35,7 +35,7 @@ class WarmShutdownMixin:
 
     def execute(self, *args, **kwargs):
         signal.signal(signal.SIGTERM, self.handle_signal)
-        super().execute(*args, **kwargs)
+        super().execute(*args, **kwargs)  # type: ignore[misc]
 
     def handle_signal(self, signalnum, handler):  # pylint: disable=unused-argument
         LOGGER.info("receive stop signal")

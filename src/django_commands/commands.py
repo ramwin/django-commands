@@ -68,9 +68,9 @@ class UniqueCommand(AutoLogCommand):
 
     def execute(self, *args, **kwargs):
         unique_name = self.get_unique_name()
-        new_instance = django_commands.models.CommandLog.objects.create(name=unique_name)
+        new_instance = django_commands.models.CommandLog.objects.create(name=unique_name)  # type: ignore[attr-defined]
         wait_after = timezone.now() - self.TIMEOUT
-        exist_commands = django_commands.models.CommandLog.objects.filter(
+        exist_commands = django_commands.models.CommandLog.objects.filter(  # type: ignore[attr-defined]
                 status="pending",
                 name=unique_name,
                 create_datetime__gte=wait_after
@@ -124,10 +124,10 @@ class WaitCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
         get a unique name for this command
         """
         self.before_handle()
+        redis, redis_key = self.get_redis_info()
         if self.IMMEDIATELY:
             LOGGER.info("rpush %s to trigger task", redis_key)
             self.create_task()
-        redis, redis_key = self.get_redis_info()
         max_run_time = kwargs.get("times", 0)
         run_time = 0
         while True:
@@ -137,8 +137,11 @@ class WaitCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
             if max_run_time and run_time >= max_run_time:
                 LOGGER.info("%s has executed as least %d times, bye bye", self, run_time)
                 return
-            key_taskids = redis.lpop(redis_key, self.BATCH_SIZE)
-            if key_taskids is None:
+            if self.BATCH_SIZE == 1:
+                key_taskids = redis.lpop(redis_key) or []
+            else:
+                key_taskids = redis.lpop(redis_key, self.BATCH_SIZE)
+            if not key_taskids:
                 key_taskid = redis.blpop(redis_key, timeout=5)
                 if key_taskid is None:
                     LOGGER.debug("no task")
@@ -285,7 +288,7 @@ class MultiProcessCommand(AutoLogCommand):
 
 
 class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
-    queryset: QuerySet = None
+    queryset: QuerySet = None  # type: ignore[assignment]
     DURATION = datetime.timedelta(minutes=1)
     BATCH_SIZE = 256
     MAX_TASK: Union[Decimal, int] = Decimal("inf")
