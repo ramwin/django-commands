@@ -138,7 +138,11 @@ class WaitCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
                 LOGGER.info("%s has executed as least %d times, bye bye", self, run_time)
                 return
             if self.BATCH_SIZE == 1:
-                key_taskids = redis.lpop(redis_key) or []
+                single_task = redis.lpop(redis_key)
+                if single_task:
+                    key_taskids = [single_task]
+                else:
+                    key_taskids = []
             else:
                 key_taskids = redis.lpop(redis_key, self.BATCH_SIZE)
             if not key_taskids:
