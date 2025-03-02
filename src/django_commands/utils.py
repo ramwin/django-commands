@@ -162,7 +162,7 @@ def get_middle_string(lower: str, upper: str) -> str:
 class Dependency:
 
     def __init__(self, models, max_count=100):
-        self.graph = TopologicalSorter()
+        self.graph: "TopologicalSorter[Model]" = TopologicalSorter()
         self.objects = {None}
         self.pending = set(models)
         self.max_count = max_count
@@ -187,7 +187,7 @@ class Dependency:
             self.graph.add(model, dependency)
 
     def all_objects(self) -> List[Model]:
-        return self.graph.static_order()
+        return list(self.graph.static_order())
 
 
 def assert_no_extra_delete(obj) -> None:

@@ -307,9 +307,11 @@ class LargeQuerysetMutiProcessHandlerCommand(MultiProcessCommand):
                 break
             if not queryset:
                 break
-            assert queryset.first()
-            assert queryset.last()
-            results.append((queryset.first().pk, queryset.last().pk))
+            first_obj = queryset.first()
+            last_obj = queryset.last()
+            assert first_obj
+            assert last_obj
+            results.append((first_obj.pk, last_obj.pk))
             if len(results) >= self.MAX_TASK:
                 break
         connections.close_all()
