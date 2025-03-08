@@ -65,15 +65,20 @@ def datetime_type(datetimestr):
     return timezone.make_aware(datetime_obj)
 
 
-def iter_large_queryset(queryset, batch_size: int = 256, ordering_field: str = "pk") -> Iterable[QuerySet]:
+def iter_large_queryset(queryset,
+                        batch_size: int = 256,
+                        ordering_field: str = "pk",
+                        ) -> Iterable[QuerySet]:
     """
     split queryset in batch_size, so you can use multiprocess to handler it.
-    mechanism:
-    1. find the offset batch_size object, get iss id
+
+    ## mechanism:
+    1. find the offset batch_size object, get its id
     2. use id to filter queryset, get the next batch_size offset
 
     so the queryset must be order by pk/id
     """
+    is_first_iteration = True  # when it was the first iteration, the satrt value should be included
     queryset = queryset.order_by(ordering_field)
     first_obj = queryset.first()
     if first_obj is None:
@@ -89,17 +94,25 @@ def iter_large_queryset(queryset, batch_size: int = 256, ordering_field: str = "
             if queryset.exists():
                 yield queryset
             return
-        q = Q(**{
-            f"{ordering_field}__gte": start_value,
-            f"{ordering_field}__lt": end_value,
-        })
+        if is_first_iteration:
+            q = Q(**{
+                f"{ordering_field}__gte": start_value,
+                f"{ordering_field}__lte": end_value,
+            })
+        else:
+            q = Q(**{
+                f"{ordering_field}__gt": start_value,
+                f"{ordering_field}__lte": end_value,
+            })
+        LOGGER.debug("next filter: %s", q)
         result = queryset.filter(q)
         if result.exists():
             yield result
+            is_first_iteration = False
         else:
             return
         start_value = end_value
-        queryset = queryset.filter(**{f"{ordering_field}__gte": start_value})
+        queryset = queryset.filter(**{f"{ordering_field}__gt": start_value})
 
 
 class Bisect:
