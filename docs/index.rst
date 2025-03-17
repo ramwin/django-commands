@@ -21,3 +21,23 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+API Reference
+=============
+
+.. toctree::
+   :maxdepth: 3
+
+Commands
+--------
+
+.. automodule:: django_commands.commands
+   :members:
+   :private-members:
+
+Mixin
+-----
+
+.. automodule:: django_commands.mixins
+   :members:
+   :private-members:

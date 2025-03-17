@@ -19,6 +19,7 @@ from typing import Iterable, List
 from django.contrib.admin.utils import NestedObjects
 from django.db import router
 from django.db.models import QuerySet, Q, ForeignKey, Model
+from django.db.models.fields.related import ManyToManyField
 from django.utils import timezone
 
 from .exceptions import NoErrorException
@@ -174,11 +175,12 @@ def get_middle_string(lower: str, upper: str) -> str:
 
 class Dependency:
 
-    def __init__(self, models, max_count=100):
+    def __init__(self, models, max_count=100, with_many_to_many=False):
         self.graph: "TopologicalSorter[Model]" = TopologicalSorter()
         self.objects = {None}
         self.pending = set(models)
         self.max_count = max_count
+        self.with_many_to_many = with_many_to_many
 
     def update_objects(self) -> None:
         while self.pending:
@@ -198,6 +200,15 @@ class Dependency:
             if dependency not in self.objects:
                 self.pending.add(dependency)
             self.graph.add(model, dependency)
+        if self.with_many_to_many:
+            self.update_many_to_many_objects(model)
+
+    def update_many_to_many_objects(self, model) -> None:
+        for field in model._meta.get_fields():
+            if isinstance(field, ManyToManyField):
+                for obj in getattr(model, field.name).all():
+                    self.graph.add(model, obj)
+                    self.pending.add(obj)
 
     def all_objects(self) -> List[Model]:
         return list(self.graph.static_order())
