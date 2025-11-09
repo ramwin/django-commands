@@ -18,6 +18,7 @@ from multiprocessing import Pool
 from typing import Tuple, Union, Iterable, Optional
 
 from redis import Redis
+from redis.cluster import RedisCluster
 
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import connections
@@ -175,7 +176,7 @@ class WaitCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
         LOGGER.error("new task created, you should override this function")
 
     @classmethod
-    def get_redis_info(cls) -> Tuple[Redis, str]:
+    def get_redis_info(cls) -> Tuple[Union[Redis, RedisCluster], str]:
         redis = get_redis_connection("default")
         redis_key = cls.NAME or f"{cls.__module__}.{cls.__name__}"
         return redis, redis_key
