@@ -17,8 +17,6 @@ from decimal import Decimal
 from multiprocessing import Pool
 from typing import Tuple, Union, Iterable, Optional
 
-from redis import Redis
-
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import connections
 from django.db.models import QuerySet
@@ -29,6 +27,7 @@ from django_redis import get_redis_connection
 import django_commands
 
 from .mixins import AutoLogMixin, WarmShutdownMixin
+from django_commands.types import RedisClient
 from .utils import iter_large_queryset
 
 
@@ -168,7 +167,7 @@ class WaitCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
         LOGGER.error("new task created, you should override this function")
 
     @classmethod
-    def get_redis_info(cls) -> Tuple[Redis, str]:
+    def get_redis_info(cls) -> Tuple[RedisClient, str]:
         redis = get_redis_connection("default")
         redis_key = cls.NAME or f"{cls.__module__}.{cls.__name__}"
         return redis, redis_key
