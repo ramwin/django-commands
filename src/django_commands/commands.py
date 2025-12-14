@@ -191,7 +191,7 @@ class MultiTimesCommand(AutoLogMixin, WarmShutdownMixin, BaseCommand):
     you can use `kill -TERM <processid>` to kill the command
     you can set MAX_TIMES to decimal.Decimal("inf") to run forever
     """
-    INTERVAL = 1
+    INTERVAL = 1.0
     MAX_TIMES: Union[Decimal, int] = 60
     run_cnt = 0
 
